@@ -8,6 +8,7 @@ export { default as UrlTile } from './lib/components/MapUrlTile.js';
 export { default as LocalTile } from './lib/components/MapLocalTile.js';
 export { default as Overlay } from './lib/components/MapOverlay.js';
 export { default as Callout } from './lib/components/MapCallout.js';
+export { default as Heatmap } from './lib/components/MapHeatmap.js';
 export { default as AnimatedRegion } from './lib/components/AnimatedRegion.js';
 export { Animated, ProviderPropType, MAP_TYPES } from './lib/components/MapView.js';
 export const PROVIDER_GOOGLE = MapView.PROVIDER_GOOGLE;
