@@ -1,22 +1,18 @@
 
-import MapView from './lib/components/MapView';	import MapView, { Animated, MAP_TYPES, ProviderPropType } from './lib/components/MapView';
-import Marker from './lib/components/MapMarker.js';	import Marker from './lib/components/MapMarker.js';
-import Overlay from './lib/components/MapOverlay.js';	import Overlay from './lib/components/MapOverlay.js';
+import MapView, { Animated, MAP_TYPES, ProviderPropType } from './lib/components/MapView';
+import Marker from './lib/components/MapMarker.js';
+import Overlay from './lib/components/MapOverlay.js';
 
 
 export { default as UrlTile } from './lib/components/MapUrlTile.js';
 export { default as LocalTile } from './lib/components/MapLocalTile.js';
-export { default as LocalTile } from './lib/components/MapLocalTile.js';
-export { default as Callout } from './lib/components/MapCallout.js';
 export { default as Callout } from './lib/components/MapCallout.js';
 export { default as AnimatedRegion } from './lib/components/AnimatedRegion.js';
-export { default as AnimatedRegion } from './lib/components/AnimatedRegion.js';
-export { Animated, ProviderPropType, MAP_TYPES } from './lib/components/MapView.js';	
 
 
- export { Marker, Overlay };	export { Marker, Overlay };
+export { Marker, Overlay };
 export { Animated, MAP_TYPES, ProviderPropType };
 
 
- export const PROVIDER_GOOGLE = MapView.PROVIDER_GOOGLE;	export const PROVIDER_GOOGLE = MapView.PROVIDER_GOOGLE;
-export const PROVIDER_DEFAULT = MapView.PROVIDER_DEFAULT;	export const PROVIDER_DEFAULT = MapView.PROVIDER_DEFAULT;
+export const PROVIDER_GOOGLE = MapView.PROVIDER_GOOGLE;
+export const PROVIDER_DEFAULT = MapView.PROVIDER_DEFAULT;
