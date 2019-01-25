@@ -19,8 +19,10 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.maps.android.data.kml.KmlLayer;
 
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.annotation.Nullable;
 
@@ -35,6 +37,10 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   private static final int FIT_TO_SUPPLIED_MARKERS = 6;
   private static final int FIT_TO_COORDINATES = 7;
   private static final int SET_MAP_BOUNDARIES = 8;
+  private static final int ANIMATE_TO_NAVIGATION = 9; 
+  private static final int SET_INDOOR_ACTIVE_LEVEL_INDEX = 10;
+  private static final int SET_CAMERA = 11;
+  private static final int ANIMATE_CAMERA = 12;
 
 
   private final Map<String, Integer> MAP_TYPES = MapBuilder.of(
@@ -82,6 +88,16 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   @ReactProp(name = "initialRegion")
   public void setInitialRegion(AirMapView view, ReadableMap initialRegion) {
     view.setInitialRegion(initialRegion);
+  }
+
+  @ReactProp(name = "camera")
+  public void setCamera(AirMapView view, ReadableMap camera) {
+    view.setCamera(camera);
+  }
+
+  @ReactProp(name = "initialCamera")
+  public void setInitialCamera(AirMapView view, ReadableMap initialCamera) {
+    view.setInitialCamera(initialCamera);
   }
 
   @ReactProp(name = "mapType")
@@ -231,6 +247,13 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
     view.map.setMaxZoomPreference(maxZoomLevel);
   }
 
+  @ReactProp(name = "kmlSrc")
+  public void setKmlSrc(AirMapView view, String kmlUrl) {
+    if (kmlUrl != null) {
+      view.setKmlSrc(kmlUrl);
+    }
+  }
+
   @Override
   public void receiveCommand(AirMapView view, int commandId, @Nullable ReadableArray args) {
     Integer duration;
@@ -241,8 +264,31 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
     float bearing;
     float angle;
     ReadableMap region;
+    ReadableMap camera;
 
     switch (commandId) {
+      case SET_CAMERA:
+        camera = args.getMap(0);
+        view.animateToCamera(camera, 0);
+        break;
+
+      case ANIMATE_CAMERA:
+        camera = args.getMap(0);
+        duration = args.getInt(1);
+        view.animateToCamera(camera, duration);
+        break;
+
+      case ANIMATE_TO_NAVIGATION:
+        region = args.getMap(0);
+        lng = region.getDouble("longitude");
+        lat = region.getDouble("latitude");
+        LatLng location = new LatLng(lat, lng);
+        bearing = (float)args.getDouble(1);
+        angle = (float)args.getDouble(2);
+        duration = args.getInt(3);
+        view.animateToNavigation(location, bearing, angle, duration);
+        break;
+
       case ANIMATE_TO_REGION:
         region = args.getMap(0);
         duration = args.getInt(1);
@@ -282,7 +328,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
         break;
 
       case FIT_TO_SUPPLIED_MARKERS:
-        view.fitToSuppliedMarkers(args.getArray(0), args.getBoolean(1));
+        view.fitToSuppliedMarkers(args.getArray(0), args.getMap(1), args.getBoolean(2));
         break;
 
       case FIT_TO_COORDINATES:
@@ -291,6 +337,10 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
 
       case SET_MAP_BOUNDARIES:
         view.setMapBoundaries(args.getMap(0), args.getMap(1));
+        break;
+
+      case SET_INDOOR_ACTIVE_LEVEL_INDEX:
+        view.setIndoorActiveLevelIndex(args.getInt(0));
         break;
     }
   }
@@ -309,10 +359,18 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
     );
 
     map.putAll(MapBuilder.of(
+        "onUserLocationChange", MapBuilder.of("registrationName", "onUserLocationChange"),
         "onMarkerDragStart", MapBuilder.of("registrationName", "onMarkerDragStart"),
         "onMarkerDrag", MapBuilder.of("registrationName", "onMarkerDrag"),
         "onMarkerDragEnd", MapBuilder.of("registrationName", "onMarkerDragEnd"),
-        "onPanDrag", MapBuilder.of("registrationName", "onPanDrag")
+        "onPanDrag", MapBuilder.of("registrationName", "onPanDrag"),
+        "onKmlReady", MapBuilder.of("registrationName", "onKmlReady"),
+        "onPoiClick", MapBuilder.of("registrationName", "onPoiClick")
+    ));
+
+    map.putAll(MapBuilder.of(
+        "onIndoorLevelActivated", MapBuilder.of("registrationName", "onIndoorLevelActivated"),
+        "onIndoorBuildingFocused", MapBuilder.of("registrationName", "onIndoorBuildingFocused")
     ));
 
     return map;
@@ -321,20 +379,40 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
   @Nullable
   @Override
   public Map<String, Integer> getCommandsMap() {
-    Map<String, Integer> map = MapBuilder.of(
+    Map<String, Integer> map = this.CreateMap(
+        "setCamera", SET_CAMERA,
+        "animateCamera", ANIMATE_CAMERA,
         "animateToRegion", ANIMATE_TO_REGION,
         "animateToCoordinate", ANIMATE_TO_COORDINATE,
         "animateToViewingAngle", ANIMATE_TO_VIEWING_ANGLE,
         "animateToBearing", ANIMATE_TO_BEARING,
         "fitToElements", FIT_TO_ELEMENTS,
         "fitToSuppliedMarkers", FIT_TO_SUPPLIED_MARKERS,
-        "fitToCoordinates", FIT_TO_COORDINATES
+        "fitToCoordinates", FIT_TO_COORDINATES,
+        "animateToNavigation", ANIMATE_TO_NAVIGATION
     );
 
     map.putAll(MapBuilder.of(
-      "setMapBoundaries", SET_MAP_BOUNDARIES
+      "setMapBoundaries", SET_MAP_BOUNDARIES,
+      "setIndoorActiveLevelIndex", SET_INDOOR_ACTIVE_LEVEL_INDEX
     ));
 
+    return map;
+  }
+
+  public static <K, V> Map<K, V> CreateMap(
+  K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10) {
+    Map map = new HashMap<K, V>();
+    map.put(k1, v1);
+    map.put(k2, v2);
+    map.put(k3, v3);
+    map.put(k4, v4);
+    map.put(k5, v5);
+    map.put(k6, v6);
+    map.put(k7, v7);
+    map.put(k8, v8);
+    map.put(k9, v9);
+    map.put(k10, v10);
     return map;
   }
 
