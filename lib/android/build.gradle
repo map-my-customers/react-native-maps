@@ -60,6 +60,6 @@ dependencies {
 configurations.all {
   resolutionStrategy {
     force 'com.android.support:support-compat:26.1.0'
-    // force 'com.android.support:appcompat-v7:26.1.0'
+    force 'com.android.support:appcompat-v7:26.1.0'
   }
 }
