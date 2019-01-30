@@ -5,6 +5,8 @@
 //  Created by Gil Birman on 9/2/16.
 //
 
+#ifdef HAVE_GOOGLE_MAPS
+
 #import "AIRGoogleMapMarker.h"
 #import <GoogleMaps/GoogleMaps.h>
 #import <React/RCTImageLoader.h>
@@ -111,6 +113,26 @@ CGRect unionRect(CGRect a, CGRect b) {
 
 - (void)hideCalloutView {
   [_realMarker.map setSelectedMarker:Nil];
+}
+
+- (void)redraw {
+  if (!_realMarker.iconView) return;
+  
+  BOOL oldValue = _realMarker.tracksViewChanges;
+  
+  if (oldValue == YES)
+  {
+    // Immediate refresh, like right now. Not waiting for next frame.
+    UIView *view = _realMarker.iconView;
+    _realMarker.iconView = nil;
+    _realMarker.iconView = view;
+  }
+  else
+  {
+    // Refresh according to docs
+    _realMarker.tracksViewChanges = YES;
+    _realMarker.tracksViewChanges = NO;
+  }
 }
 
 - (UIView *)markerInfoContents {
@@ -224,7 +246,7 @@ CGRect unionRect(CGRect a, CGRect b) {
                                                                  dispatch_async(dispatch_get_main_queue(), ^{
 
                                                                    // TODO(gil): This way allows different image sizes
-                                                                   if (_iconImageView) [_iconImageView removeFromSuperview];
+                                                                   if (self->_iconImageView) [self->_iconImageView removeFromSuperview];
 
                                                                    // ... but this way is more efficient?
 //                                                                   if (_iconImageView) {
@@ -250,10 +272,38 @@ CGRect unionRect(CGRect a, CGRect b) {
                                                                    CGRect selfBounds = unionRect(bounds, self.bounds);
                                                                    [self setFrame:selfBounds];
 
-                                                                   _iconImageView = imageView;
+                                                                   self->_iconImageView = imageView;
                                                                    [self iconViewInsertSubview:imageView atIndex:0];
                                                                  });
                                                                }];
+}
+
+- (void)setIconSrc:(NSString *)iconSrc
+{
+  _iconSrc = iconSrc;
+
+  if (_reloadImageCancellationBlock) {
+    _reloadImageCancellationBlock();
+    _reloadImageCancellationBlock = nil;
+  }
+
+  _reloadImageCancellationBlock =
+  [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:_iconSrc]
+                                          size:self.bounds.size
+                                         scale:RCTScreenScale()
+                                       clipped:YES
+                                    resizeMode:RCTResizeModeCenter
+                                 progressBlock:nil
+                              partialLoadBlock:nil
+                               completionBlock:^(NSError *error, UIImage *image) {
+                                 if (error) {
+                                   // TODO(lmr): do something with the error?
+                                   NSLog(@"%@", error);
+                                 }
+                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                   _realMarker.icon = image;
+                                 });
+                               }];
 }
 
 - (void)setTitle:(NSString *)title {
@@ -319,3 +369,5 @@ CGRect unionRect(CGRect a, CGRect b) {
 }
 
 @end
+
+#endif

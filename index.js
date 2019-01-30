@@ -2,6 +2,7 @@ import MapView, { Animated, MAP_TYPES, ProviderPropType } from './lib/components
 import Marker from './lib/components/MapMarker.js';
 import Overlay from './lib/components/MapOverlay.js';
 
+export { default as Heatmap } from './lib/components/MapHeatmap.js'
 export { default as Polyline } from './lib/components/MapPolyline.js';
 export { default as Polygon } from './lib/components/MapPolygon.js';
 export { default as Circle } from './lib/components/MapCircle.js';
