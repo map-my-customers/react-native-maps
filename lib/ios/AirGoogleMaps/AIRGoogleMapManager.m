@@ -52,8 +52,10 @@ RCT_EXPORT_MODULE()
   self.map = map;
   map.settings.consumesGesturesInView = NO;
 
-  UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handleMapDrag:)];
-  [map addGestureRecognizer:pinch];
+  UIPanGestureRecognizer *drag = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleMapDrag:)];
+  [drag setMinimumNumberOfTouches:1];
+  [drag setMaximumNumberOfTouches:1];
+  [map addGestureRecognizer:drag];
 
   return map;
 }
