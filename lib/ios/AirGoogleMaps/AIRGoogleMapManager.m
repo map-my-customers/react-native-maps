@@ -52,10 +52,7 @@ RCT_EXPORT_MODULE()
   self.map = map;
   map.settings.consumesGesturesInView = NO;
 
-  UIPanGestureRecognizer *drag = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleMapDrag:)];
-  [drag setMinimumNumberOfTouches:1];
-  [drag setMaximumNumberOfTouches:1];
-  [map addGestureRecognizer:drag];
+  UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handleMapDrag:)];
   [map addGestureRecognizer:pinch];
 
   return map;
@@ -85,7 +82,6 @@ RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onKmlReady, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onPanDrag, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onUserLocationChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPanDrag, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
@@ -630,7 +626,6 @@ RCT_EXPORT_METHOD(setIndoorActiveLevelIndex:(nonnull NSNumber *)reactTag
   [aMarker.fakeMarker didDragMarker:aMarker];
 }
 
-#pragma mark Gesture Recognizer Handlers
 
 - (void) didChangeActiveBuilding: (nullable GMSIndoorBuilding *) building {
   if (!building) {
