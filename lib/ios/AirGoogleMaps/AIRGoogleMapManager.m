@@ -56,8 +56,6 @@ RCT_EXPORT_MODULE()
   [drag setMinimumNumberOfTouches:1];
   [drag setMaximumNumberOfTouches:1];
   [map addGestureRecognizer:drag];
-
-  UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handleMapDrag:)];
   [map addGestureRecognizer:pinch];
 
   return map;
@@ -633,26 +631,6 @@ RCT_EXPORT_METHOD(setIndoorActiveLevelIndex:(nonnull NSNumber *)reactTag
 }
 
 #pragma mark Gesture Recognizer Handlers
-
-- (void)handleMapDrag:(UIPanGestureRecognizer*)recognizer {
-  AIRGoogleMap *map = (AIRGoogleMap *)recognizer.view;
-  if (!map.onPanDrag) return;
-  
-  CGPoint touchPoint = [recognizer locationInView:map];
-  CLLocationCoordinate2D coord = [map.projection coordinateForPoint:touchPoint];
-  map.onPanDrag(@{
-                  @"coordinate": @{
-                      @"latitude": @(coord.latitude),
-                      @"longitude": @(coord.longitude),
-                      },
-                  @"position": @{
-                      @"x": @(touchPoint.x),
-                      @"y": @(touchPoint.y),
-                      },
-                  });
-  
-}
-
 
 - (void) didChangeActiveBuilding: (nullable GMSIndoorBuilding *) building {
   if (!building) {
